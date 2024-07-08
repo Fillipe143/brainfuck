@@ -1,4 +1,4 @@
-use std::{fs, io::Read};
+use std::{char, fs, io::Read};
 
 macro_rules! throw_error {
     ($($arg: tt)*) => {
@@ -81,7 +81,9 @@ fn execute_program(operators: &Vec<Operator>) {
             '+' => { cells[cell_offset] += curr_operator.1 as i32; },
             '-' => { cells[cell_offset] -= curr_operator.1 as i32; },
             '.' => for _ in 0..operators[i].1 {
-                print!("{}", char::from_u32(cells[cell_offset] as u32).unwrap());
+                if let Some(c) = char::from_u32(cells[cell_offset] as u32) {
+                    print!("{c}")
+                }
             },
             ',' => {
                 let mut byte = [0_u8];
