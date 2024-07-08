@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, io::Read};
 
 macro_rules! throw_error {
     ($($arg: tt)*) => {
@@ -60,6 +60,44 @@ fn extract_operators(data: &mut Vec<u8>) -> Vec<Operator> {
     operators
 }
 
+fn execute_program(operators: &Vec<Operator>) {
+    let mut cells = Vec::<i32>::new();
+    let mut cell_offset = 0;
+    cells.push(0);
+
+    let mut i = 0;
+    while i < operators.len() {
+        let curr_operator = operators[i];
+
+        match curr_operator.0 {
+            '<' => {
+                if cell_offset == 0 { throw_error!("Range error"); }
+                cell_offset -= curr_operator.1;
+            },
+            '>' => {
+                cell_offset += curr_operator.1;
+                while cell_offset >= cells.len() { cells.push(0); }
+            },
+            '+' => { cells[cell_offset] += curr_operator.1 as i32; },
+            '-' => { cells[cell_offset] -= curr_operator.1 as i32; },
+            '.' => for _ in 0..operators[i].1 {
+                print!("{}", char::from_u32(cells[cell_offset] as u32).unwrap());
+            },
+            ',' => {
+                let mut byte = [0_u8];
+                if let Err(_) = std::io::stdin().read_exact(&mut byte) {
+                    throw_error!("Unexpected error when reading character");
+                }
+                cells[cell_offset] = byte[0] as i32;
+            },
+            '[' => if cells[cell_offset] == 0 { i = curr_operator.1; },
+            ']' => if cells[cell_offset] != 0 { i = curr_operator.1; },
+            _ => {}
+        }
+        i += 1;
+    }
+}
+
 fn main() {
     let mut args: Vec<String> = std::env::args().rev().collect();
 
@@ -68,5 +106,5 @@ fn main() {
 
     let mut data = read_file(file_path.as_str());
     let operators = extract_operators(&mut data);
-    println!("{:?}", operators);
+    execute_program(&operators);
 }
