@@ -12,7 +12,7 @@ fn read_arg(args: &mut Vec<String>, msg: &str) -> String {
     args.pop().unwrap()
 }
 
-fn check_file_path(file_path: &str) {
+fn read_file(file_path: &str) -> Vec<u8> {
     if !file_path.ends_with(".bf") { throw_error!("Invalid file extension"); }
 
     let file_metadata = fs::metadata(file_path);
@@ -20,6 +20,9 @@ fn check_file_path(file_path: &str) {
 
     let file_type = file_metadata.unwrap().file_type();
     if !file_type.is_file() { throw_error!("This path is not to a file"); }
+
+    if let Ok(data) = fs::read(file_path) { data }
+    else { throw_error!("Unable to read file '{}'", file_path); }
 }
 
 fn main() {
@@ -27,5 +30,6 @@ fn main() {
 
     let _ = read_arg(&mut args, "Unable to read program arguments");
     let file_path = read_arg(&mut args, "File path not given");
-    check_file_path(file_path.as_str());
+    let data = read_file(file_path.as_str());
+    println!("{:?}", data);
 }
